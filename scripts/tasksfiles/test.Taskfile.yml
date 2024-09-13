@@ -1,0 +1,36 @@
+version: "3"
+
+env:
+  CGO_ENABLED: "0"
+
+tasks:
+  test:
+    desc: Runs tests
+    cmds:
+      - task: unit-test
+      - task: integration-test
+      - task: e2e-test
+
+  unit-test:
+    desc: Runs unit tests
+    cmds:
+      - go test -count=1 ./...
+
+  integration-test:
+    desc: Runs integration tests
+    cmds:
+      - go test -count=1 -tags=integ ./...
+
+  e2e-test:
+    desc: Runs end-to-end tests
+    cmds:
+      - go test -count=1 -tags=e2e ./...
+
+  coverage:
+    cmds:
+      - if [ -f {{ .COVERAGE_PROFILE }} ]; then rm {{ .COVERAGE_PROFILE }}; fi;
+      - go test $(go list ./... | grep -vE "/gen/|/mock.*/") -coverprofile={{ .COVERAGE_PROFILE }} -covermode=count &> /dev/null
+      - go tool cover -func={{ .COVERAGE_PROFILE }}
+    vars:
+      COVERAGE_PROFILE: cov.out
+

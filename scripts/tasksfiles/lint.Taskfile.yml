@@ -1,0 +1,8 @@
+version: "3"
+
+tasks:
+  go-lint:
+    desc: Runs golangci-lint
+    cmds:
+      - golangci-lint run --config .golangci.yml ./...
+      

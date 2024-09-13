@@ -1,0 +1,37 @@
+version: "3"
+env:
+  CGO_ENABLED: "0"
+
+vars:
+  MAIN_DIR: . 
+  BIN_DIR: .bin
+  SERVICE_NAME: app
+
+tasks: 
+  run:
+    desc: Runs key-gen service
+    aliases: [r]
+    deps: 
+      - build
+    cmds:
+      - "{{ .BIN_DIR }}/{{ .SERVICE_NAME }}"
+
+  build:
+    desc: Builds key-gen service
+    aliases: [b]
+    cmds:
+      - go build 
+        -ldflags="-w -s -X '{{ .COMMIT_VAR }}={{ .GIT_COMMIT }}' -X '{{ .VERSION_VAR }}={{ .VERSION }}' -X '{{ .DATE_VAR }}={{ .DATE }}'" 
+        -o {{ .BIN_DIR }}/{{ .SERVICE_NAME }} {{ .MAIN_DIR }}
+    vars:
+      DATE_VAR: main.date
+      COMMIT_VAR: main.commit
+      VERSION_VAR: main.version
+
+      DATE:
+        sh: date --rfc-3339=seconds
+      VERSION:  
+        sh: jq '.version' version.json
+      GIT_COMMIT: 
+        sh: git log -n 1 --format=%h || true
+
