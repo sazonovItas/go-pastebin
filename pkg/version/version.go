@@ -1,4 +1,4 @@
-package version
+package versioninfo
 
 import goversion "github.com/caarlos0/go-version"
 

@@ -1,11 +1,11 @@
 version: "3"
+
 env:
-  CGO_ENABLED: "0"
+  CGO_ENABLED: 0
 
 vars:
   MAIN_DIR: . 
   BIN_DIR: .bin
-  SERVICE_NAME: app
 
 tasks: 
   run:

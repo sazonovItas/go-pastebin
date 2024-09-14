@@ -1,8 +1,17 @@
 version: "3"
 
+vars:
+  GOLANGCI_LINT_CONFIG: .golangci.yml
+  BUF_LINT_CONFIG: buf.yaml
+
 tasks:
   go-lint:
     desc: Runs golangci-lint
     cmds:
-      - golangci-lint run --config .golangci.yml ./...
+      - golangci-lint run --config {{ .GOLANGCI_LINT_CONFIG }} ./...
+
+  buf-lint:
+    desc: Runs buf lint
+    cmds:
+      - buf lint --config {{ .BUF_LINT_CONFIG }}
       
