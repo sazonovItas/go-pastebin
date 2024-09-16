@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package key.v1;
+option go_package = "key/v1;keyv1";
+
+import "google/api/annotations.proto";
+
+service KeyService {
+  rpc GetKey(GetKeyRequest) returns (GetKeyResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/key"
+    };
+  }
+}
+
+message KeyMessage {
+  string key = 1;
+}
+
+message GetKeyRequest {}
+
+message GetKeyResponse {
+  KeyMessage msg = 1;
+}
+

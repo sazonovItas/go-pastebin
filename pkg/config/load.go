@@ -82,7 +82,6 @@ func MustWithFlagBindings(
 	}
 }
 
-// TODO: add ignoring missing file or some specification for loading config.
 func Load(cfg any, configPath string, ignoreMissingFile bool, options ...optionFunc) error {
 	viperCfg := enviper.New(viper.New())
 	for _, option := range options {

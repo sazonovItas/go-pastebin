@@ -1,0 +1,28 @@
+version: "3"
+
+vars:
+  SERVICE_NAME: key-gen
+
+env:
+  KEYGEN_GRPC_ADDRESS: :8080
+
+includes:
+  builds: ../../scripts/tasksfiles/build.Taskfile.yml
+  linters: ../../scripts/tasksfiles/lint.Taskfile.yml
+  tests: ../../scripts/tasksfiles/test.Taskfile.yml
+
+tasks:
+  default:
+    cmds:
+      - task: lint
+      - task: tests:test
+
+  lint:
+    cmds:
+      - task: linters:go-lint
+      - task: linters:buf-lint
+
+  gen-api:
+    cmds:
+      - buf lint 
+      - buf generate

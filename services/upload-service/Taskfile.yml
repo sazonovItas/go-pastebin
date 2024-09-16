@@ -1,0 +1,11 @@
+version: "3"
+
+tasks:
+  run:
+    cmds:
+      - go run .
+    env:
+      MINIO_ENDPOINT: "debian-virt:9000"
+      MINIO_ACCESS_KEY: kcNIRGwSyDOwIRGRdLcJ
+      MINIO_SECRET_ACCESS_KEY: 0nnTjVIZb58a4cmtlvCEXWJviUYQigh9am4PPEee
+      MINIO_BUCKET: test
