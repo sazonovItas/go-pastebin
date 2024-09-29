@@ -1,101 +1,56 @@
 package app
 
 import (
-	"context"
-	"errors"
-	"sync/atomic"
-
+	"github.com/sazonovItas/go-pastebin/pkg/app"
 	gatewayapp "github.com/sazonovItas/go-pastebin/services/key-gen-service/internal/app/gateway"
 	grpcapp "github.com/sazonovItas/go-pastebin/services/key-gen-service/internal/app/grpc"
 	"github.com/sazonovItas/go-pastebin/services/key-gen-service/internal/lib/generator"
 	keygensvc "github.com/sazonovItas/go-pastebin/services/key-gen-service/internal/service/keygen"
 	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 )
 
-type (
-	Service interface {
-		Run(ctx context.Context) error
-		Shutdown()
-	}
-)
-
-type app struct {
-	cfg Config
-
-	ctx    context.Context
-	cancel context.CancelFunc
-
-	services    []Service
-	cleanUps    []func()
-	cleanUpDone atomic.Int32
+type Config struct {
+	Log           LogConfig                      `yaml:"log"     mapstructure:"log"`
+	Core          CoreConfig                     `yaml:"core"    mapstructure:"core"`
+	GRPCServer    grpcapp.GRPCServerConfig       `yaml:"grpc"    mapstructure:"grpc"`
+	GatewayServer gatewayapp.GatewayServerConfig `yaml:"gateway" mapstructure:"gateway"`
 }
 
-func NewApp(log *zap.Logger, cfg Config) *app {
-	authFn := func(token string) error {
-		if token != cfg.Core.APIToken {
-			return errors.New("invalid api token")
-		}
+type LogConfig struct {
+	Level  string `yaml:"level"  mapstructure:"level"`
+	Format string `yaml:"format" mapstructure:"format"`
+}
 
-		return nil
-	}
+type CoreConfig struct {
+	KeyBuffer int    `yaml:"key_buffer" mapstructure:"key_buffer"`
+	KeyLength int    `yaml:"key_length" mapstructure:"key_length"`
+	APIToken  string `yaml:"api_token"  mapstructure:"api_token"`
+}
 
+func New(log *zap.Logger, cfg Config) *app.App {
 	keyGenService := keygensvc.New(generator.NewGenerator(cfg.Core.KeyLength), cfg.Core.KeyBuffer)
-	grpcServer := grpcapp.NewApp(log.Named("grpc_server"), cfg.GRPCServer, keyGenService, authFn)
-	gatewayServer := gatewayapp.NewApp(
-		log.Named("gateway_server"),
-		cfg.GatewayServer,
+
+	apps := make([]app.Service, 0)
+	grpcServer := grpcapp.NewApp(
+		log.Named("grpc_server"),
+		cfg.GRPCServer,
 		keyGenService,
 	)
+	apps = append(apps, grpcServer)
 
-	return &app{
-		cfg: cfg,
-
-		services: []Service{grpcServer, gatewayServer},
-		cleanUps: []func(){keyGenService.Stop},
-	}
-}
-
-func (a *app) MustRun(ctx context.Context) {
-	if err := a.Run(ctx); err != nil {
-		panic(err)
-	}
-}
-
-func (a *app) Run(parentCtx context.Context) error {
-	a.ctx, a.cancel = context.WithCancel(parentCtx)
-
-	wg, ctx := errgroup.WithContext(a.ctx)
-	for _, svc := range a.services {
-		wg.Go(func() error {
-			return svc.Run(ctx)
-		})
-	}
-	<-ctx.Done()
-
-	a.shutdownServices()
-
-	return wg.Wait()
-}
-
-func (a *app) Shutdown() {
-	if a.cancel != nil {
-		a.cancel()
-	}
-}
-
-func (a *app) CleanUp() {
-	if !a.cleanUpDone.CompareAndSwap(0, 1) {
-		return
+	if cfg.GatewayServer.Enabled {
+		gatewayServer := gatewayapp.NewApp(
+			log.Named("gateway_server"),
+			cfg.GatewayServer,
+			keyGenService,
+		)
+		apps = append(apps, gatewayServer)
 	}
 
-	for _, cleanUp := range a.cleanUps {
-		cleanUp()
-	}
-}
+	return &app.App{
+		Cfg: cfg,
 
-func (a *app) shutdownServices() {
-	for _, svc := range a.services {
-		svc.Shutdown()
+		Services: apps,
+		CleanUps: []func(){keyGenService.Stop},
 	}
 }

@@ -1,0 +1,7 @@
+version: "3"
+
+tasks:
+  api:
+    cmds:
+      - buf lint
+      - buf generate

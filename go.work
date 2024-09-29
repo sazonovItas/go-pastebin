@@ -1,6 +1,7 @@
 go 1.23.0
 
 use (
+	./gen/go
 	./pkg
 	./services/key-gen-service
 	./services/upload-service

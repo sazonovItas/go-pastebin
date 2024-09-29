@@ -1,11 +1,19 @@
 version: "3"
 
+vars:
+  SERVICE_NAME: upload
+
+includes:
+  builds: ../../scripts/tasksfiles/build.Taskfile.yml
+  linters: ../../scripts/tasksfiles/lint.Taskfile.yml
+  tests: ../../scripts/tasksfiles/test.Taskfile.yml
+
 tasks:
-  run:
+  default:
     cmds:
-      - go run .
-    env:
-      MINIO_ENDPOINT: "debian-virt:9000"
-      MINIO_ACCESS_KEY: kcNIRGwSyDOwIRGRdLcJ
-      MINIO_SECRET_ACCESS_KEY: 0nnTjVIZb58a4cmtlvCEXWJviUYQigh9am4PPEee
-      MINIO_BUCKET: test
+      - task: lint
+      - task: tests:test
+
+  lint:
+    cmds:
+      - task: linters:go-lint

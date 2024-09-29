@@ -2,6 +2,7 @@ package gatewayapp
 
 import (
 	"context"
+	"net/http"
 
 	grpchandler "github.com/sazonovItas/go-pastebin/services/key-gen-service/internal/handler/grpc"
 	"go.uber.org/zap"
@@ -10,6 +11,8 @@ import (
 type gatewayApp struct {
 	log *zap.Logger
 	cfg GatewayServerConfig
+
+	mux *http.ServeMux
 }
 
 func NewApp(log *zap.Logger, cfg GatewayServerConfig, keyGenSvc grpchandler.KeyGenSvc) *gatewayApp {

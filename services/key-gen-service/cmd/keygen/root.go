@@ -15,11 +15,10 @@ import (
 type rootCmd struct {
 	cmd        *cobra.Command
 	configPath string
-	exit       func(int)
 }
 
-func Execute(version goversion.Info, exit func(int), args []string) {
-	newRootCmd(version, exit).Execute(args)
+func Execute(version goversion.Info, args []string) {
+	newRootCmd(version).Execute(args)
 }
 
 func (cmd *rootCmd) Execute(args []string) {
@@ -30,8 +29,8 @@ func (cmd *rootCmd) Execute(args []string) {
 	}
 }
 
-func newRootCmd(version goversion.Info, exit func(int)) *rootCmd {
-	root := &rootCmd{exit: exit}
+func newRootCmd(version goversion.Info) *rootCmd {
+	root := &rootCmd{}
 
 	cmd := &cobra.Command{
 		Use:               "key-gen-service",
@@ -55,6 +54,10 @@ func newRootCmd(version goversion.Info, exit func(int)) *rootCmd {
 					"log.level":       "info",
 					"core.key_buffer": 10,
 					"core.key_length": 15,
+					"grpc.enabled":    true,
+					"grpc.port":       "9090",
+					"gateway.enabled": false,
+					"gateway.port":    "8080",
 				}),
 			); err != nil {
 				panic(err)

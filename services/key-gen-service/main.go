@@ -18,10 +18,10 @@ func main() {
 	context.Background()
 	vInfo := versioninfo.BuildVersion(
 		"Key gen service",
-		"Key gen service generates unique keys with given length",
+		"Key gen service generates unique keys",
 		version,
 		commit,
 		date,
 	)
-	cmd.Execute(vInfo, os.Exit, os.Args[1:])
+	cmd.Execute(vInfo, os.Args[1:])
 }

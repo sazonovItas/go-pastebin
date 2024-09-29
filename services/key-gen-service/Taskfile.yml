@@ -21,8 +21,3 @@ tasks:
     cmds:
       - task: linters:go-lint
       - task: linters:buf-lint
-
-  gen-api:
-    cmds:
-      - buf lint 
-      - buf generate

@@ -1,8 +1,6 @@
 package gatewayapp
 
-import "time"
-
 type GatewayServerConfig struct {
-	Address string        `yaml:"address" mapstructure:"address"`
-	Timeout time.Duration `yaml:"timeout" mapstructure:"timeout"`
+	Enabled bool   `yaml:"enabled" mapstructure:"enabled"`
+	Port    string `yaml:"port"    mapstructure:"port"`
 }

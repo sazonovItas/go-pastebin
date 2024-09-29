@@ -4,10 +4,8 @@
 package key
 
 import (
-	"context"
 	"testing"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/metadata"
 	keyv1 "github.com/sazonovItas/go-pastebin/services/key-gen-service/gen/pb/key/v1"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc/codes"
@@ -23,40 +21,20 @@ func (kcs *KeyClientSuite) TestGetKey() {
 
 	tests := []struct {
 		name     string
-		metadata metadata.MD
 		wantErr  bool
 		wantCode codes.Code
 	}{
 		{
-			name:     "Test valid api token",
-			metadata: metadata.MD{"x-api-key-gen-token": []string{kcs.APIToken}},
+			name:     "Test get key api",
 			wantErr:  false,
 			wantCode: codes.OK,
-		},
-		{
-			name:     "Test invalid api token",
-			metadata: metadata.MD{"x-api-key-gen-token": []string{"invalid-api-token"}},
-			wantErr:  true,
-			wantCode: codes.Unauthenticated,
-		},
-		{
-			name:     "Test invalid format api token",
-			metadata: metadata.MD{"x-api-key-gen-token": []string{"bearer", "invalid-api-token"}},
-			wantErr:  true,
-			wantCode: codes.Unauthenticated,
-		},
-		{
-			name:     "Test missing api token",
-			metadata: metadata.MD{},
-			wantErr:  true,
-			wantCode: codes.Unauthenticated,
 		},
 	}
 
 	for _, tt := range tests {
 		kcs.T().Run(tt.name, func(t *testing.T) {
 			var err error
-			if _, err = kcs.KeyClient.GetKey(tt.metadata.ToOutgoing(context.Background()), &keyv1.GetKeyRequest{}); (err != nil) != tt.wantErr {
+			if _, err = kcs.KeyClient.GetKey(&keyv1.GetKeyRequest{}); (err != nil) != tt.wantErr {
 				t.Errorf("GetKey() = error %v, want %v", err, tt.wantErr)
 			}
 

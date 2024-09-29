@@ -65,7 +65,7 @@ func WithDefaults(defaults map[string]any) optionFunc {
 
 // TODO: do something with returning error.
 // MustWithFlagBindings binds flags to viper config from flag set.
-func MustWithFlagBindings(
+func WithFlagBindings(
 	flagSet *pflag.FlagSet,
 	bindings map[string]func(flagSet *pflag.FlagSet) *pflag.Flag,
 ) optionFunc {

@@ -6,16 +6,12 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/metadata"
 	"github.com/sazonovItas/go-pastebin/pkg/logger"
 	grpchandler "github.com/sazonovItas/go-pastebin/services/key-gen-service/internal/handler/grpc"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 const (
@@ -33,27 +29,7 @@ func NewApp(
 	log *zap.Logger,
 	cfg GRPCServerConfig,
 	keyGenSvc grpchandler.KeyGenSvc,
-	authFn func(token string) error,
 ) *grpcApp {
-	authFunc := func(ctx context.Context) (context.Context, error) {
-		md := metadata.ExtractIncoming(ctx)
-
-		token, ok := md[APITokenMeta]
-		if !ok {
-			return ctx, status.Errorf(codes.Unauthenticated, "missing api key gen token")
-		}
-
-		if len(token) != 1 {
-			return ctx, status.Errorf(codes.Unauthenticated, "invalid api key gen token format")
-		}
-
-		if err := authFn(token[0]); err != nil {
-			return ctx, status.Errorf(codes.Unauthenticated, "%s", err.Error())
-		}
-
-		return ctx, nil
-	}
-
 	loggingOpts := logging.UnaryServerInterceptor(
 		logger.GRPCInterceptor(log),
 		logging.WithLogOnEvents(logging.PayloadReceived, logging.PayloadSent),
@@ -63,7 +39,6 @@ func NewApp(
 		grpc.ChainUnaryInterceptor(
 			loggingOpts,
 			recovery.UnaryServerInterceptor(),
-			auth.UnaryServerInterceptor(authFunc),
 			loggerToContext(log),
 		),
 	}
@@ -88,9 +63,9 @@ func (a *grpcApp) MustRun(ctx context.Context) {
 func (a *grpcApp) Run(ctx context.Context) error {
 	const op = "grpcapp.Run"
 
-	a.log.Info("Starting grpc server", zap.String("address", a.cfg.Address))
+	a.log.Info("Starting grpc server", zap.String("port", a.cfg.Port))
 
-	listener, err := net.Listen("tcp", a.cfg.Address)
+	listener, err := net.Listen("tcp", a.cfg.Port)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
